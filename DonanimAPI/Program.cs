@@ -1,4 +1,7 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using MongoDB.Driver;
+using Microsoft.Extensions.Options;
+
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddCors(options =>
@@ -15,6 +18,23 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// MongoDB Ayarlarını Yapılandır
+var mongoDbSettings = builder.Configuration.GetSection("MongoDB");
+var connectionString = mongoDbSettings["ConnectionString"];
+var databaseName = mongoDbSettings["Database"];
+
+// MongoDB Bağlantısını Hizmet Olarak Ekleyin
+builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
+{
+    return new MongoClient(connectionString);
+});
+
+builder.Services.AddSingleton<IMongoDatabase>(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    return client.GetDatabase(databaseName);
+});
 
 var app = builder.Build();
 

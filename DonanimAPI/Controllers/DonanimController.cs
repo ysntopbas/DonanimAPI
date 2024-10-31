@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using DonanimAPI.Models;
+using MongoDB.Driver;
+using System.Threading.Tasks;
 
 namespace DonanimAPI.Controllers
 {
@@ -7,25 +9,33 @@ namespace DonanimAPI.Controllers
     [ApiController]
     public class DonanimController : ControllerBase
     {
-        
+        private readonly IMongoCollection<DonanimBilgileri> _donanimBilgileriCollection;
+
+        public DonanimController(IConfiguration config)
+        {
+            var mongoClient = new MongoClient(config.GetConnectionString("MongoDb"));
+            var database = mongoClient.GetDatabase("DonanimDB"); // Veritabanı adını değiştirin
+            _donanimBilgileriCollection = database.GetCollection<DonanimBilgileri>("DonanimBilgileri");
+        }
 
         [HttpPost]
-        public IActionResult PostDonanimBilgileri([FromBody] DonanimBilgileri donanimBilgileri)
+        public async Task<IActionResult> PostDonanimBilgileri([FromBody] DonanimBilgileri donanimBilgileri)
         {
-            // Gelen donanım bilgilerini işleme
             if (donanimBilgileri == null)
             {
                 return BadRequest("Donanım bilgileri geçersiz.");
             }
 
-            // Donanım bilgilerini işleyin (örneğin, bir veritabanına kaydedin)
-            // Burada donanimBilgileri nesnesine erişebilirsiniz.
-            // Örneğin:
-            // var cpuInfo = donanimBilgileri.CpuInfo;
-           
-            Console.WriteLine(donanimBilgileri.GpuInfo);
+            try
+            {
+                await _donanimBilgileriCollection.InsertOneAsync(donanimBilgileri);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Veritabanına eklenirken bir hata oluştu: {ex.Message}");
+            }
+
             return Ok(); // Başarılı bir yanıt döndür
         }
-        
     }
 }

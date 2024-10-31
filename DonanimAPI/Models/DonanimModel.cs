@@ -1,10 +1,21 @@
-﻿namespace DonanimAPI.Models
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
+
+namespace DonanimAPI.Models
 {
     public class DonanimBilgileri
     {
-        public string CpuInfo { get; set; }
-        public string GpuInfo { get; set; }
-        public string RamInfo { get; set; }
-        public string DiskInfo { get; set; }
+        //[BsonId]
+        //[BsonRepresentation(BsonType.ObjectId)]
+        //public string Id { get; set; } // MongoDB'de benzersiz bir kimlik
+
+        public string CpuInfo { get; set; } // CPU bilgisi
+        public string GpuInfo { get; set; } // GPU bilgisi
+        public string RamInfo { get; set; } // RAM bilgisi
+        public string DiskInfo { get; set; } // Disk bilgisi
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime Date { get; set; } = DateTime.Now; // Tarih ve saat bilgisi
     }
 }
