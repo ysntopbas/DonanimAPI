@@ -7,9 +7,7 @@ namespace DonanimAPI.Models
 {
     public class DonanimBilgileri
     {
-        //[BsonId]
-        //[BsonRepresentation(BsonType.ObjectId)]
-        //public string Id { get; set; } // MongoDB'de benzersiz bir kimlik
+        
 
         public List<CpuInfo> CpuInfos { get; set; } = new List<CpuInfo>();
         public List<GpuInfo> GpuInfos { get; set; } = new List<GpuInfo>();
@@ -18,6 +16,8 @@ namespace DonanimAPI.Models
        
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime Date { get; set; } = DateTime.Now; // Tarih ve saat bilgisi
+        public string DeviceID { get; set; }
+        public string DeviceName { get; set; }
 
     }
 }
