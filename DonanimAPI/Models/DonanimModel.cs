@@ -2,6 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 
+
 namespace DonanimAPI.Models
 {
     public class DonanimBilgileri
@@ -10,12 +11,13 @@ namespace DonanimAPI.Models
         //[BsonRepresentation(BsonType.ObjectId)]
         //public string Id { get; set; } // MongoDB'de benzersiz bir kimlik
 
-        public string CpuInfo { get; set; } // CPU bilgisi
-        public string GpuInfo { get; set; } // GPU bilgisi
-        public string RamInfo { get; set; } // RAM bilgisi
-        public string DiskInfo { get; set; } // Disk bilgisi
-
+        public List<CpuInfo> CpuInfos { get; set; } = new List<CpuInfo>();
+        public List<GpuInfo> GpuInfos { get; set; } = new List<GpuInfo>();
+        public Dictionary<string, float> RamInfo { get; set; } = new Dictionary<string, float>(); // RAM bilgileri
+        public Dictionary<string, float> DiskInfo { get; set; } = new Dictionary<string, float>(); // Disk bilgileri
+       
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime Date { get; set; } = DateTime.Now; // Tarih ve saat bilgisi
+
     }
 }
