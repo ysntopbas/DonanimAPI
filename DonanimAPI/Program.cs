@@ -1,30 +1,40 @@
-﻿using MongoDB.Driver;
-using Microsoft.Extensions.Options;
+﻿using DonanimAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllOrigins",
-        builder =>
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
-});
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
 
+// DI Setup
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<UserService>();
 
-// MongoDB Ayarlarını Yapılandır
-var mongoDbSettings = builder.Configuration.GetSection("MongoDB");
-var connectionString = mongoDbSettings["ConnectionString"];
-var databaseName = mongoDbSettings["Database"];
+// MongoDB Setup
+var connectionString = builder.Configuration.GetValue<string>("ConnectionStrings:MongoDb");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new ArgumentNullException("MongoDB connection string is missing.");
+}
 
-// MongoDB Bağlantısını Hizmet Olarak Ekleyin
 builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
 {
     return new MongoClient(connectionString);
@@ -33,8 +43,10 @@ builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
 builder.Services.AddSingleton<IMongoDatabase>(sp =>
 {
     var client = sp.GetRequiredService<IMongoClient>();
+    var databaseName = builder.Configuration.GetValue<string>("ConnectionStrings:Database");
     return client.GetDatabase(databaseName);
 });
+
 
 var app = builder.Build();
 
@@ -45,7 +57,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAllOrigins"); // CORS'u burada kullanın
+app.UseAuthentication(); // JWT Authentication
 app.UseAuthorization();
 app.MapControllers();
 

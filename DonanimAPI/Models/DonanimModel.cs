@@ -16,8 +16,8 @@ namespace DonanimAPI.Models
        
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime Date { get; set; } = DateTime.Now; // Tarih ve saat bilgisi
-        public string DeviceID { get; set; }
-        public string DeviceName { get; set; }
+        public required string DeviceID { get; set; }
+        public required string DeviceName { get; set; }
 
     }
 }
