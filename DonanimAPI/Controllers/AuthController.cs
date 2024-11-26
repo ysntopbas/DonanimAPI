@@ -5,8 +5,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -28,35 +26,35 @@ public class AuthController : ControllerBase
         // Model doğrulaması
         if (!ModelState.IsValid)
         {
-            return BadRequest(new { Message = "Invalid model." }); // Hatalı model durumunda 400 döner
+            return BadRequest(new { Message = "Invalid model." });
         }
-
-        var existingUser = await _userService.LoginAsync(model.Username, model.Password);
-        if (existingUser != null)
-        {
-            return BadRequest(new { Message = "User already exists." });
-        }
-
-        // Kullanıcıyı kayıt etme
-        var user = new User
-        {
-            Username = model.Username,
-            Email = model.Email,
-            Password = model.Password
-        };
 
         try
         {
+            var existingUser = await _userService.LoginAsync(model.Username, model.Password);
+            if (existingUser != null)
+            {
+                return BadRequest(new { Message = "User already exists." });
+            }
+
+            // Kullanıcıyı kayıt etme
+            var user = new User
+            {
+                Username = model.Username,
+                Email = model.Email
+            };
+
+            // Şifreyi hash'le
+            user.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
+
             await _userService.RegisterAsync(user);
             return Ok(new { Message = "Registration successful" });
         }
         catch (Exception ex)
         {
-            // Hata durumunda dönecek mesaj
             return StatusCode(500, new { Message = "An error occurred during registration", Error = ex.Message });
         }
     }
-
 
     // Login User
     [HttpPost("login")]
@@ -65,7 +63,7 @@ public class AuthController : ControllerBase
         // Model doğrulaması
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState); // Hatalı model durumunda 400 döner
+            return BadRequest(ModelState);
         }
 
         var loggedInUser = await _userService.LoginAsync(model.Username, model.Password);
@@ -82,7 +80,7 @@ public class AuthController : ControllerBase
         var claims = new[] {
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Role, "User") // Opsiyonel, rol ataması yapılabilir
+            new Claim(ClaimTypes.Role, "User")
         };
 
         var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]));

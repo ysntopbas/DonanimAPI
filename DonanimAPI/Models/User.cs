@@ -14,5 +14,6 @@ namespace DonanimAPI.Models
         public string Email { get; set; } = null!;
 
 
+
     }
 }

@@ -14,7 +14,7 @@ namespace DonanimAPI.Models
         public string Email { get; set; }
 
         [Required]
-        [MinLength(6)] // Örneğin, minimum 6 karakter
+        [MinLength(8)] // Örneğin, minimum 8 karakter
         public string Password { get; set; }
     }
 }
