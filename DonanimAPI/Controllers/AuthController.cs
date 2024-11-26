@@ -28,13 +28,13 @@ public class AuthController : ControllerBase
         // Model doğrulaması
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState); // Hatalı model durumunda 400 döner
+            return BadRequest(new { Message = "Invalid model." }); // Hatalı model durumunda 400 döner
         }
 
         var existingUser = await _userService.LoginAsync(model.Username, model.Password);
         if (existingUser != null)
         {
-            return BadRequest("User already exists.");
+            return BadRequest(new { Message = "User already exists." });
         }
 
         // Kullanıcıyı kayıt etme
@@ -45,9 +45,18 @@ public class AuthController : ControllerBase
             Password = model.Password
         };
 
-        await _userService.RegisterAsync(user);
-        return Ok(new { Message = "Registration successful" });
+        try
+        {
+            await _userService.RegisterAsync(user);
+            return Ok(new { Message = "Registration successful" });
+        }
+        catch (Exception ex)
+        {
+            // Hata durumunda dönecek mesaj
+            return StatusCode(500, new { Message = "An error occurred during registration", Error = ex.Message });
+        }
     }
+
 
     // Login User
     [HttpPost("login")]

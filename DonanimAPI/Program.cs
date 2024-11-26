@@ -6,6 +6,19 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+
+// CORS Configurations
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")  // Geçerli URL, sadece kök adres
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -49,6 +62,9 @@ builder.Services.AddSingleton<IMongoDatabase>(sp =>
 
 
 var app = builder.Build();
+
+// Enable CORS
+app.UseCors("AllowReactApp");
 
 if (app.Environment.IsDevelopment())
 {
