@@ -56,9 +56,8 @@ builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
 
 builder.Services.AddSingleton<IMongoDatabase>(sp =>
 {
-    var client = sp.GetRequiredService<IMongoClient>();
-    var databaseName = builder.Configuration.GetValue<string>("ConnectionStrings:Database");
-    return client.GetDatabase(databaseName);
+    var client = new MongoClient(builder.Configuration.GetConnectionString("MongoDb"));
+    return client.GetDatabase("DonanimDB");  // Veritabanı adı
 });
 
 builder.Services.AddSwaggerGen(c =>

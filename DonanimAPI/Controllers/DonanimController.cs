@@ -11,27 +11,30 @@ namespace DonanimAPI.Controllers
     {
         private readonly IMongoCollection<DonanimBilgileri> _donanimBilgileriCollection;
 
-        public DonanimController(IConfiguration config)
+        // Veritabanı bağlantısını DI ile al
+        public DonanimController(IMongoDatabase database)
         {
-            var mongoClient = new MongoClient(config.GetConnectionString("MongoDb"));
-            var database = mongoClient.GetDatabase("DonanimDB"); // Veritabanı adını değiştirin
             _donanimBilgileriCollection = database.GetCollection<DonanimBilgileri>("DonanimBilgileri");
         }
 
+
+
+        [HttpPost]
         [HttpPost]
         public async Task<IActionResult> PostDonanimBilgileri([FromBody] DonanimBilgileri donanimBilgileri)
         {
-            if (donanimBilgileri == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Donanım bilgileri geçersiz.");
+                return BadRequest(ModelState);  // Model validasyonu yapılır.
             }
+
+
+
 
             try
             {
-                // Veritabanında DeviceID'ye göre kontrol et
                 var filter = Builders<DonanimBilgileri>.Filter.Eq(d => d.DeviceID, donanimBilgileri.DeviceID);
 
-                // Güncelleme için Update işlemi
                 var update = Builders<DonanimBilgileri>.Update
                     .Set(d => d.CpuInfos, donanimBilgileri.CpuInfos)
                     .Set(d => d.GpuInfos, donanimBilgileri.GpuInfos)
@@ -40,18 +43,39 @@ namespace DonanimAPI.Controllers
                     .Set(d => d.Date, donanimBilgileri.Date)
                     .Set(d => d.DeviceName, donanimBilgileri.DeviceName);
 
-                // Upsert işlemi için UpdateOptions
                 var options = new UpdateOptions { IsUpsert = true };
 
-                // DeviceID'ye göre upsert işlemini yap
-                await _donanimBilgileriCollection.UpdateOneAsync(filter, update, options);
+                var result = await _donanimBilgileriCollection.UpdateOneAsync(filter, update, options);
+
+                if (result.ModifiedCount == 0 && result.UpsertedId == null)
+                {
+                    return NotFound("Veritabanında güncellenen herhangi bir bilgi bulunamadı.");
+                }
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Veritabanına eklenirken bir hata oluştu: {ex.Message}");
             }
 
-            return Ok(); // Başarılı bir yanıt döndür
+            return Ok("Donanım bilgileri başarıyla güncellendi."); // Başarılı bir yanıt döndür
         }
+
+
+        [HttpGet("computers")]
+        public async Task<IActionResult> GetComputers()
+        {
+            
+            try
+            {
+                var computers = await _donanimBilgileriCollection.Find(_ => true).ToListAsync();
+                return Ok(computers.Select(c => new { c.DeviceID, c.DeviceName, c.Id }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Veri çekme hatası", error = ex.Message });
+            }
+        }
+
+
     }
 }

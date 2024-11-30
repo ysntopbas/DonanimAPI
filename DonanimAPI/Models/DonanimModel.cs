@@ -7,8 +7,9 @@ namespace DonanimAPI.Models
 {
     public class DonanimBilgileri
     {
-        
 
+        [BsonId]
+        public ObjectId Id { get; set; }  // MongoDB'nin _id alanını karşılamak için ObjectId kullanılır.
         public List<CpuInfo> CpuInfos { get; set; } = new List<CpuInfo>();
         public List<GpuInfo> GpuInfos { get; set; } = new List<GpuInfo>();
         public Dictionary<string, float> RamInfo { get; set; } = new Dictionary<string, float>(); // RAM bilgileri
