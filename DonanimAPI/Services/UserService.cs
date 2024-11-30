@@ -59,5 +59,10 @@ namespace DonanimAPI.Services
         {
             return await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
+
+        internal async Task<object> Login(HttpContext context)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

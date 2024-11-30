@@ -1,5 +1,6 @@
 ﻿using DonanimAPI.Models;
 using DonanimAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -23,7 +24,6 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
-        // Model doğrulaması
         if (!ModelState.IsValid)
         {
             return BadRequest(new { Message = "Invalid model." });
@@ -31,28 +31,20 @@ public class AuthController : ControllerBase
 
         try
         {
-            var existingUser = await _userService.LoginAsync(model.Username, model.Password);
-            if (existingUser != null)
-            {
-                return BadRequest(new { Message = "User already exists." });
-            }
-
-            // Kullanıcıyı kayıt etme
             var user = new User
             {
                 Username = model.Username,
-                Email = model.Email
+                Email = model.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(model.Password)
             };
 
-            // Şifreyi hash'le
-            user.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
-
             await _userService.RegisterAsync(user);
+
             return Ok(new { Message = "Registration successful" });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { Message = "An error occurred during registration", Error = ex.Message });
+            return BadRequest(new { Message = ex.Message });
         }
     }
 
@@ -60,26 +52,42 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
-        // Model doğrulaması
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            return BadRequest(new { Message = "Invalid model." });
         }
 
-        var loggedInUser = await _userService.LoginAsync(model.Username, model.Password);
-        if (loggedInUser == null)
-            return Unauthorized("Invalid username or password.");
+        // Kullanıcı doğrulama işlemi
+        var user = await _userService.LoginAsync(model.Username, model.Password);
+        if (user == null)
+        {
+            return Unauthorized(new { Message = "Invalid username or password." });
+        }
 
-        var token = GenerateJwtToken(loggedInUser);
+        // JWT Token oluşturma
+        var token = GenerateJwtToken(user);
 
         return Ok(new { Message = "Login successful", Token = token });
     }
 
+    //TOKEN TESTI ICIN ENDPOINT
+
+    [Authorize]
+    [HttpGet("protected")]
+    public IActionResult GetProtectedResource()
+    {
+        // Bu endpoint'e sadece geçerli token ile erişilebilir.
+        return Ok(new { Message = "This is a protected resource." });
+    }
+
+    //TOKEN TESTI ICIN ENDPOINT
+
     private string GenerateJwtToken(User user)
     {
-        var claims = new[] {
+        var claims = new[]
+        {
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Role, "User")
         };
 
