@@ -59,23 +59,5 @@ namespace DonanimAPI.Controllers
 
             return Ok("Donanım bilgileri başarıyla güncellendi."); // Başarılı bir yanıt döndür
         }
-
-
-        [HttpGet("computers")]
-        public async Task<IActionResult> GetComputers()
-        {
-            
-            try
-            {
-                var computers = await _donanimBilgileriCollection.Find(_ => true).ToListAsync();
-                return Ok(computers.Select(c => new { c.DeviceID, c.DeviceName, c.Id }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Veri çekme hatası", error = ex.Message });
-            }
-        }
-
-
     }
 }

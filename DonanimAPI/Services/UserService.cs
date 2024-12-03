@@ -8,10 +8,13 @@ namespace DonanimAPI.Services
     public class UserService
     {
         private readonly IMongoCollection<User> _users;
+        private readonly IMongoCollection<UserDevice> _userDevices;
+
 
         public UserService(IMongoDatabase database)
         {
             _users = database.GetCollection<User>("Users");
+            _userDevices = database.GetCollection<UserDevice>("UsersDevices");
         }
 
         // Kullanıcıyı kaydetme
@@ -64,5 +67,32 @@ namespace DonanimAPI.Services
         {
             throw new NotImplementedException();
         }
+
+        // Kullanıcıya cihaz ekleme
+        public async Task AddUserDeviceAsync(string username, string deviceID)
+        {
+            // Daha önce eklenmiş mi kontrol et
+            var exists = await _userDevices.Find(ud => ud.Username == username && ud.DeviceID == deviceID).FirstOrDefaultAsync();
+            if (exists != null)
+            {
+                throw new Exception("This device is already registered for the user.");
+            }
+
+            var userDevice = new UserDevice
+            {
+                Username = username,
+                DeviceID = deviceID
+            };
+
+            await _userDevices.InsertOneAsync(userDevice);
+        }
+
+        // Kullanıcıya bağlı cihazları getir
+        public async Task<List<string>> GetUserDevicesAsync(string username)
+        {
+            var devices = await _userDevices.Find(ud => ud.Username == username).ToListAsync();
+            return devices.Select(d => d.DeviceID).ToList();
+        }
     }
 }
+
