@@ -69,19 +69,6 @@ public class AuthController : ControllerBase
 
         return Ok(new { Message = "Login successful", Token = token });
     }
-
-    //TOKEN TESTI ICIN ENDPOINT
-
-    [Authorize]
-    [HttpGet("protected")]
-    public IActionResult GetProtectedResource()
-    {
-        // Bu endpoint'e sadece geçerli token ile erişilebilir.
-        return Ok(new { Message = "This is a protected resource." });
-    }
-
-    //TOKEN TESTI ICIN ENDPOINT
-
     private string GenerateJwtToken(User user)
     {
         var claims = new[]

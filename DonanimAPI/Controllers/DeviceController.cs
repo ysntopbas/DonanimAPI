@@ -1,5 +1,6 @@
 ﻿using DonanimAPI.Models;
 using DonanimAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -20,6 +21,7 @@ namespace DonanimAPI.Controllers
             _donanimBilgileriCollection = database.GetCollection<DonanimBilgileri>("DonanimBilgileri");
         }
 
+        [Authorize]
         [HttpPost("AddDevice")]
         public async Task<IActionResult> AddDevice([FromBody] UserDevice userDevice)
         {
@@ -48,6 +50,7 @@ namespace DonanimAPI.Controllers
         //    }
         //}
 
+        [Authorize]
         [HttpGet("GetDeviceInfo/{username}")]
         public async Task<IActionResult> GetDeviceInfo(string username)
         {

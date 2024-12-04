@@ -9,12 +9,22 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 
-// CORS Configurations
+//// CORS Configurations ONCEKI
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowReactApp", policy =>
+//    {
+//        policy.WithOrigins("http://localhost:3000")  // Geçerli URL, sadece kök adres
+//              .AllowAnyMethod()
+//              .AllowAnyHeader();
+//    });
+//});
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")  // Geçerli URL, sadece kök adres
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -73,8 +83,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Enable CORS
-app.UseCors("AllowReactApp");
+//// Enable CORS ONCEKI
+//app.UseCors("AllowReactApp");
+app.UseCors("AllowAll");
 
 if (app.Environment.IsDevelopment())
 {
