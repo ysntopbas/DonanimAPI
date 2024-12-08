@@ -10,17 +10,14 @@ namespace DonanimAPI.Services
         private readonly IMongoCollection<User> _users;
         private readonly IMongoCollection<UserDevice> _userDevices;
 
-
         public UserService(IMongoDatabase database)
         {
             _users = database.GetCollection<User>("Users");
             _userDevices = database.GetCollection<UserDevice>("UsersDevices");
         }
 
-        // Kullanıcıyı kaydetme
         public async Task<User?> RegisterAsync(User user)
         {
-            // Kullanıcı adı ve e-posta zaten var mı kontrol et
             var existingUserByUsername = await _users.Find(u => u.Username == user.Username).FirstOrDefaultAsync();
             if (existingUserByUsername != null)
             {
@@ -33,29 +30,20 @@ namespace DonanimAPI.Services
                 throw new Exception("Email already exists.");
             }
 
-            // Yeni bir ObjectId oluştur ve kullanıcıya ata
             user.Id = ObjectId.GenerateNewId().ToString();
             await _users.InsertOneAsync(user);
             return user;
         }
 
-        // Login işlemi: şifre hash'ini kontrol et
         public async Task<User?> LoginAsync(string username, string password)
         {
             var user = await _users.Find(u => u.Username == username).FirstOrDefaultAsync();
-            if (user == null)
-            {
-                return null;
-            }
+            if (user == null) return null;
 
-            // Kullanıcıyı bulduktan sonra şifreyi doğrula
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.Password);
-            if (isPasswordValid)
-            {
-                return user;
-            }
+            if (isPasswordValid) return user;
 
-            return null; // Şifre geçerli değilse null döndür
+            return null;
         }
 
         public async Task<User?> GetUserByIdAsync(string id)
@@ -63,17 +51,8 @@ namespace DonanimAPI.Services
             return await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
 
-        internal async Task<object> Login(HttpContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        // Kullanıcıya cihaz ekleme
-
-
         public async Task AddUserDeviceAsync(string username, string deviceID)
         {
-            // Daha önce eklenmiş mi kontrol et
             var exists = await _userDevices.Find(ud => ud.Username == username && ud.DeviceID == deviceID).FirstOrDefaultAsync();
             if (exists != null)
             {
@@ -89,12 +68,20 @@ namespace DonanimAPI.Services
             await _userDevices.InsertOneAsync(userDevice);
         }
 
-        // Kullanıcıya bağlı cihazları getir
         public async Task<List<string>> GetUserDevicesAsync(string username)
         {
             var devices = await _userDevices.Find(ud => ud.Username == username).ToListAsync();
             return devices.Select(d => d.DeviceID).ToList();
         }
+
+        // Yeni DeleteUserDeviceAsync metodu ekledik
+        public async Task DeleteUserDeviceAsync(string username, string deviceID)
+        {
+            var result = await _userDevices.DeleteOneAsync(ud => ud.Username == username && ud.DeviceID == deviceID);
+            if (result.DeletedCount == 0)
+            {
+                throw new Exception("Device not found for the user.");
+            }
+        }
     }
 }
-

@@ -1,6 +1,5 @@
 ﻿using DonanimAPI.Models;
 using DonanimAPI.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -21,7 +20,6 @@ namespace DonanimAPI.Controllers
             _donanimBilgileriCollection = database.GetCollection<DonanimBilgileri>("DonanimBilgileri");
         }
 
-        [Authorize]
         [HttpPost("AddDevice")]
         public async Task<IActionResult> AddDevice([FromBody] UserDevice userDevice)
         {
@@ -36,32 +34,27 @@ namespace DonanimAPI.Controllers
             }
         }
 
-        //[HttpGet("GetDevices/{username}")]
-        //public async Task<IActionResult> GetDevices(string username)
-        //{
-        //    try
-        //    {
-        //        var devices = await _userService.GetUserDevicesAsync(username);
-        //        return Ok(devices);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest($"Error: {ex.Message}");
-        //    }
-        //}
+        [HttpDelete("DeleteDevice")]
+        public async Task<IActionResult> DeleteDevice([FromBody] UserDevice userDevice)
+        {
+            try
+            {
+                await _userService.DeleteUserDeviceAsync(userDevice.Username, userDevice.DeviceID);
+                return Ok("Device deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error: {ex.Message}");
+            }
+        }
 
-        [Authorize]
         [HttpGet("GetDeviceInfo/{username}")]
         public async Task<IActionResult> GetDeviceInfo(string username)
         {
             try
             {
-                // Kullanıcıya ait cihaz ID'lerini al
                 var deviceIDs = await _userService.GetUserDevicesAsync(username);
-
-                // Donanım bilgileri koleksiyonundan bu ID'lere ait bilgileri getir
                 var devicesInfo = await _donanimBilgileriCollection.Find(d => deviceIDs.Contains(d.DeviceID)).ToListAsync();
-
                 return Ok(devicesInfo);
             }
             catch (Exception ex)
