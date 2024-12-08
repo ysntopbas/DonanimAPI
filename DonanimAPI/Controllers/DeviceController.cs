@@ -48,6 +48,21 @@ namespace DonanimAPI.Controllers
             }
         }
 
+        [HttpGet("GetDevices/{username}")]
+        public async Task<IActionResult> GetDevices(string username)
+        {
+            try
+            {
+                var devices = await _userService.GetUserDevicesAsync(username);
+                return Ok(devices);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error: {ex.Message}");
+            }
+        }
+
+
         [HttpGet("GetDeviceInfo/{username}")]
         public async Task<IActionResult> GetDeviceInfo(string username)
         {
