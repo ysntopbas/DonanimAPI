@@ -9,17 +9,7 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 
-//// CORS Configurations ONCEKI
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowReactApp", policy =>
-//    {
-//        policy.WithOrigins("http://localhost:3000")  // Geçerli URL, sadece kök adres
-//              .AllowAnyMethod()
-//              .AllowAnyHeader();
-//    });
-//});
-
+// CORS Configurations
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -53,21 +43,29 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<UserService>();
 
 // MongoDB Setup
-var connectionString = builder.Configuration.GetValue<string>("ConnectionStrings:MongoDb");
-if (string.IsNullOrEmpty(connectionString))
+var mongoConnectionString = builder.Configuration.GetValue<string>("ConnectionStrings:MongoDb");
+var databaseName = builder.Configuration.GetValue<string>("ConnectionStrings:Database");
+
+if (string.IsNullOrEmpty(mongoConnectionString))
 {
     throw new ArgumentNullException("MongoDB connection string is missing.");
 }
 
-builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
+if (string.IsNullOrEmpty(databaseName))
 {
-    return new MongoClient(connectionString);
+    throw new ArgumentNullException("MongoDB database name is missing.");
+}
+
+// MongoClient ve IMongoDatabase'in DI'ye eklenmesi
+builder.Services.AddSingleton<IMongoClient>(sp =>
+{
+    return new MongoClient(mongoConnectionString);
 });
 
 builder.Services.AddSingleton<IMongoDatabase>(sp =>
 {
-    var client = new MongoClient(builder.Configuration.GetConnectionString("MongoDb"));
-    return client.GetDatabase("DonanimDB");  // Veritabanı adı
+    var client = sp.GetRequiredService<IMongoClient>();
+    return client.GetDatabase(databaseName);
 });
 
 
