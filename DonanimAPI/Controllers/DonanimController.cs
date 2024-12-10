@@ -3,6 +3,7 @@ using DonanimAPI.Models;  // NoteModel sınıfının doğru namespace'ini kullan
 using MongoDB.Driver;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DonanimAPI.Controllers
 {
@@ -92,6 +93,7 @@ namespace DonanimAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("GetNote/{deviceID}")]
         public async Task<IActionResult> GetNote(string deviceID)
         {
