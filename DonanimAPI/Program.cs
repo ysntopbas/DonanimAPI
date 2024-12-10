@@ -12,9 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 // CORS Configurations
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://blue-mud-09088bb1e.4.azurestaticapps.net")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -81,9 +81,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-//// Enable CORS ONCEKI
-//app.UseCors("AllowReactApp");
-app.UseCors("AllowAll");
+//// Enable CORS 
+
+app.UseCors("AllowReactApp");
 
 if (app.Environment.IsDevelopment())
 {
