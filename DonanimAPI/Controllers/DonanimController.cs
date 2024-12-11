@@ -93,7 +93,7 @@ namespace DonanimAPI.Controllers
             }
         }
 
-        [Authorize]
+        
         [HttpGet("GetNote/{deviceID}")]
         public async Task<IActionResult> GetNote(string deviceID)
         {
