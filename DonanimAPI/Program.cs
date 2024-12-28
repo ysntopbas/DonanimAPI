@@ -12,8 +12,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Environment variables'ları yükle - projenin root dizinindeki .env dosyasını oku
 Env.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
-// CORS'u en başta ekleyelim
-builder.Services.AddCors();
+// CORS politikasını en başta tanımla
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins("https://hardwareasyle.netlify.app")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -69,29 +79,23 @@ builder.Services.Configure<JwtSettings>(options =>
 
 var app = builder.Build();
 
-// CORS'u ilk middleware olarak ekleyelim
-app.UseCors(options => options
-    .WithOrigins("https://hardwareasyle.netlify.app")
-    .AllowAnyMethod()
-    .AllowAnyHeader()
-    .AllowCredentials());
+// CORS'u ilk middleware olarak ekle
+app.UseCors();
 
 // Port ayarını ekle
 var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
 app.Urls.Add($"http://0.0.0.0:{port}");
 
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
-
-// Development ortamında Swagger'ı etkinleştir
+// Swagger middleware'i
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "DonanimAPI v1");
-    });
+    app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();

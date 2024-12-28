@@ -8,9 +8,9 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Cors;
 
+[EnableCors]
 [Route("api/[controller]")]
 [ApiController]
-[EnableCors("AllowSpecificOrigin")]
 public class AuthController : ControllerBase
 {
     private readonly UserService _userService;
