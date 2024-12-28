@@ -4,20 +4,27 @@ using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using System.Text;
 using Microsoft.OpenApi.Models;
-
+using DotNetEnv;
+using DonanimAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Environment variables'ları yükle - projenin root dizinindeki .env dosyasını oku
+Env.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
-// CORS Configurations
+
+// CORS configuration
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", policy =>
-    {
-        policy.WithOrigins("https://blue-mud-09088bb1e.4.azurestaticapps.net")
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder
+                .WithOrigins(Environment.GetEnvironmentVariable("ALLOWED_ORIGINS").Split(','))
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
 });
 
 // JWT Authentication
@@ -43,58 +50,52 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<UserService>();
 
 // MongoDB Setup
-var mongoConnectionString = builder.Configuration.GetValue<string>("ConnectionStrings:MongoDb");
-var databaseName = builder.Configuration.GetValue<string>("ConnectionStrings:Database");
-
-if (string.IsNullOrEmpty(mongoConnectionString))
-{
-    throw new ArgumentNullException("MongoDB connection string is missing.");
-}
-
-if (string.IsNullOrEmpty(databaseName))
-{
-    throw new ArgumentNullException("MongoDB database name is missing.");
-}
-
-// MongoClient ve IMongoDatabase'in DI'ye eklenmesi
 builder.Services.AddSingleton<IMongoClient>(sp =>
 {
-    return new MongoClient(mongoConnectionString);
+    var connectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING");
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new ArgumentNullException("MONGODB_CONNECTION_STRING", "MongoDB connection string is not set in environment variables.");
+    }
+    return new MongoClient(connectionString);
 });
 
-builder.Services.AddSingleton<IMongoDatabase>(sp =>
+builder.Services.AddScoped<IMongoDatabase>(sp =>
 {
     var client = sp.GetRequiredService<IMongoClient>();
+    var databaseName = Environment.GetEnvironmentVariable("MONGODB_DATABASE_NAME");
+    if (string.IsNullOrEmpty(databaseName))
+    {
+        throw new ArgumentNullException("MONGODB_DATABASE_NAME", "MongoDB database name is not set in environment variables.");
+    }
     return client.GetDatabase(databaseName);
 });
 
+// JWT configuration
+builder.Services.Configure<JwtSettings>(options =>
+{
+    options.Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+    options.Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+    options.Key = Environment.GetEnvironmentVariable("JWT_KEY");
+});
 
 var app = builder.Build();
 
+// Development ortamında Swagger'ı etkinleştir
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "DonanimAPI v1");
-        c.RoutePrefix = string.Empty;  // Swagger UI ana sayfası olarak ayarlıyoruz
     });
 }
 
-//// Enable CORS 
+// CORS middleware'ini en üste taşıyalım
+app.UseCors("AllowSpecificOrigin");
 
-app.UseCors("AllowReactApp");
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-
-// JWT middleware'ı eklemiyoruz çünkü AddJwtBearer bunu otomatik yapıyor.
 app.UseHttpsRedirection();
-app.UseAuthentication(); // JWT Authentication
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

@@ -1,0 +1,29 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# IDE - VSCode
+.vscode/
+*.code-workspace
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.swp
+*~ 

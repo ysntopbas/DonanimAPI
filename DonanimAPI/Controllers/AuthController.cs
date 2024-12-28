@@ -6,9 +6,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Cors;
 
 [Route("api/[controller]")]
 [ApiController]
+[EnableCors("AllowSpecificOrigin")]
 public class AuthController : ControllerBase
 {
     private readonly UserService _userService;

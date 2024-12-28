@@ -20,7 +20,7 @@ namespace DonanimAPI.Controllers
             _userDeviceCollection = database.GetCollection<UserDevice>("UserDevices");
             _donanimBilgileriCollection = database.GetCollection<DonanimBilgileri>("DonanimBilgileri");
         }
-        [Authorize]
+        
         [HttpPost("AddDevice")]
         public async Task<IActionResult> AddDevice([FromBody] UserDevice userDevice)
         {
@@ -34,7 +34,7 @@ namespace DonanimAPI.Controllers
                 return BadRequest($"Error: {ex.Message}");
             }
         }
-        [Authorize]
+        
         [HttpDelete("DeleteDevice")]
         public async Task<IActionResult> DeleteDevice([FromBody] UserDevice userDevice)
         {
@@ -48,7 +48,7 @@ namespace DonanimAPI.Controllers
                 return BadRequest($"Error: {ex.Message}");
             }
         }
-        [Authorize]
+        
         [HttpGet("GetDevices/{username}")]
         public async Task<IActionResult> GetDevices(string username)
         {
@@ -63,7 +63,7 @@ namespace DonanimAPI.Controllers
             }
         }
 
-        [Authorize]
+        
         [HttpGet("GetDeviceInfo/{username}")]
         public async Task<IActionResult> GetDeviceInfo(string username)
         {
