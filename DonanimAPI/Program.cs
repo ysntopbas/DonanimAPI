@@ -12,13 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Environment variables'ları yükle - projenin root dizinindeki .env dosyasını oku
 Env.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
-// CORS politikasını en başta tanımla
+// CORS politikasını en basit haliyle tanımla
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
         policy
-            .WithOrigins("*")
+            .SetIsOriginAllowed(origin => true) // Tüm originlere izin ver
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -79,7 +79,7 @@ builder.Services.Configure<JwtSettings>(options =>
 
 var app = builder.Build();
 
-// CORS'u ilk middleware olarak ekle (diğer middleware'lerden önce)
+// CORS'u ilk middleware olarak ekle
 app.UseCors();
 
 if (app.Environment.IsDevelopment())
