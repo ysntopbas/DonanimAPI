@@ -19,8 +19,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
+            var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
+                ?? new[] { "*" }; // Eğer ALLOWED_ORIGINS tanımlı değilse, tüm originlere izin ver
+
             builder
-                .WithOrigins(Environment.GetEnvironmentVariable("ALLOWED_ORIGINS").Split(','))
+                .WithOrigins(allowedOrigins)
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
