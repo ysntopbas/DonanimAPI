@@ -94,7 +94,10 @@ if (app.Environment.IsDevelopment())
 // CORS middleware'ini en üste taşıyalım
 app.UseCors("AllowSpecificOrigin");
 
-app.UseHttpsRedirection();
+// Port ayarını ekle
+var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
+app.Urls.Add($"http://0.0.0.0:{port}");
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
