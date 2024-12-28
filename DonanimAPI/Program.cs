@@ -12,17 +12,19 @@ var builder = WebApplication.CreateBuilder(args);
 // Environment variables'ları yükle - projenin root dizinindeki .env dosyasını oku
 Env.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
-// CORS politikasını en başta tanımla
+
+// CORS configuration
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
-    {
-        policy
-            .WithOrigins("https://hardwareasyle.netlify.app")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder
+                .WithOrigins("https://hardwareasyle.netlify.app")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
 });
 
 // JWT Authentication
@@ -79,21 +81,38 @@ builder.Services.Configure<JwtSettings>(options =>
 
 var app = builder.Build();
 
-// CORS'u ilk middleware olarak ekle
-app.UseCors();
+// CORS'u ilk middleware olarak ekleyelim
+app.UseCors(options => options
+    .WithOrigins("https://hardwareasyle.netlify.app")
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials());
 
 // Port ayarını ekle
 var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
 app.Urls.Add($"http://0.0.0.0:{port}");
 
-// Swagger middleware'i
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+// Development ortamında Swagger'ı etkinleştir
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "DonanimAPI v1");
+    });
 }
 
-app.UseHttpsRedirection();
+// CORS middleware'ini en üste taşıyalım (UseRouting'den önce)
+app.UseCors("AllowSpecificOrigin");
+
+// Port ayarını ekle
+var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
+app.Urls.Add($"http://0.0.0.0:{port}");
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
