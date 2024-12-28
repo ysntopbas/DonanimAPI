@@ -19,11 +19,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
-            var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
-                ?? new[] { "*" }; // Eğer ALLOWED_ORIGINS tanımlı değilse, tüm originlere izin ver
-
             builder
-                .WithOrigins(allowedOrigins)
+                .WithOrigins("https://hardwareasyle.netlify.app")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -94,7 +91,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// CORS middleware'ini en üste taşıyalım
+// CORS middleware'ini en üste taşıyalım (UseRouting'den önce)
 app.UseCors("AllowSpecificOrigin");
 
 // Port ayarını ekle
