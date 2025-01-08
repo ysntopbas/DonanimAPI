@@ -51,5 +51,29 @@ namespace DonanimAPI.Controllers
                 return StatusCode(500, $"Mesajlar alınamadı: {ex.Message}");
             }
         }
+
+        [HttpDelete("{deviceId}")]
+        public async Task<ActionResult> DeleteMessagesByDeviceId(string deviceId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(deviceId))
+                    return BadRequest("Cihaz ID boş olamaz.");
+
+                var result = await _messageService.DeleteMessagesByDeviceIdAsync(deviceId);
+                if (result)
+                {
+                    return Ok($"{deviceId} cihazına ait tüm mesajlar başarıyla silindi.");
+                }
+                else
+                {
+                    return NotFound($"{deviceId} cihazına ait mesaj bulunamadı.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Mesajlar silinirken bir hata oluştu: {ex.Message}");
+            }
+        }
     }
 } 

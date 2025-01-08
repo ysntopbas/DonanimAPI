@@ -41,5 +41,20 @@ namespace DonanimAPI.Services
                 .SortByDescending(m => m.MessageDate)
                 .ToListAsync();
         }
+
+        public async Task<bool> DeleteMessagesByDeviceIdAsync(string deviceId)
+        {
+            try
+            {
+                var filter = Builders<Message>.Filter.Eq(m => m.DeviceID, deviceId);
+                var result = await _messages.DeleteManyAsync(filter);
+                return result.DeletedCount > 0;
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                return false;
+            }
+        }
     }
 } 
