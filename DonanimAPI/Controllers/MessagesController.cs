@@ -31,23 +31,7 @@ namespace DonanimAPI.Controllers
                 return StatusCode(500, $"Mesaj gönderilemedi: {ex.Message}");
             }
         }
-
-        [HttpGet("last/{deviceId}")]
-        public async Task<ActionResult<Message>> GetLastMessage(string deviceId)
-        {
-            try
-            {
-                var message = await _messageService.GetLastMessageAsync(deviceId);
-                if (message == null)
-                    return NotFound("Bu cihaz için mesaj bulunamadı.");
-
-                return Ok(message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Son mesaj alınamadı: {ex.Message}");
-            }
-        }
+        
 
         [HttpGet("{deviceId}")]
         public async Task<ActionResult<IEnumerable<Message>>> GetMessagesByDeviceId(string deviceId)
