@@ -15,13 +15,11 @@ Env.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 // CORS politikasını en basit haliyle tanımla
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+options.AddPolicy("AllowAllOrigins", policy =>
     {
-        policy
-            .SetIsOriginAllowed(origin => true) // Tüm originlere izin ver
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -80,7 +78,7 @@ builder.Services.Configure<JwtSettings>(options =>
 var app = builder.Build();
 
 // CORS'u ilk middleware olarak ekle
-app.UseCors();
+app.UseCors("AllowAllOrigins");
 
 if (app.Environment.IsDevelopment())
 {
@@ -89,8 +87,8 @@ if (app.Environment.IsDevelopment())
 }
 
 // Port ayarı
-var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
-app.Urls.Add($"http://0.0.0.0:{port}");
+//var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
+//app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.UseAuthentication();
 app.UseAuthorization();
