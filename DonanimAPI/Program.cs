@@ -75,6 +75,8 @@ builder.Services.Configure<JwtSettings>(options =>
     options.Key = Environment.GetEnvironmentVariable("JWT_KEY");
 });
 
+builder.Services.AddScoped<IMessageService, MessageService>();
+
 var app = builder.Build();
 
 // CORS'u ilk middleware olarak ekle
