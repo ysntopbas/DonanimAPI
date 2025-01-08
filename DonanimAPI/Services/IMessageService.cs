@@ -6,5 +6,6 @@ namespace DonanimAPI.Services
     {
         Task<Message> CreateMessageAsync(Message message);
         Task<Message> GetLastMessageAsync(string deviceId);
+        Task<IEnumerable<Message>> GetMessagesByDeviceIdAsync(string deviceId);
     }
 } 

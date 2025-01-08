@@ -33,5 +33,13 @@ namespace DonanimAPI.Services
                                 .Sort(sort)
                                 .FirstOrDefaultAsync();
         }
+
+        public async Task<IEnumerable<Message>> GetMessagesByDeviceIdAsync(string deviceId)
+        {
+            return await _messages
+                .Find(m => m.DeviceID == deviceId)
+                .SortByDescending(m => m.MessageDate)
+                .ToListAsync();
+        }
     }
 } 
