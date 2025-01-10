@@ -12,14 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Environment variables'ları yükle - projenin root dizinindeki .env dosyasını oku
 Env.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
-// CORS politikasını en basit haliyle tanımla
+// CORS politikasını tanımla
 builder.Services.AddCors(options =>
 {
-options.AddPolicy("AllowAllOrigins", policy =>
+    options.AddPolicy("AllowHardwareAsyle", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://hardwareasyle.netlify.app")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -79,8 +80,8 @@ builder.Services.AddScoped<IMessageService, MessageService>();
 
 var app = builder.Build();
 
-// CORS'u ilk middleware olarak ekle
-app.UseCors("AllowAllOrigins");
+// CORS'u middleware olarak ekle (app.Build()'den sonraki kısımda)
+app.UseCors("AllowHardwareAsyle");
 
 if (app.Environment.IsDevelopment())
 {
@@ -88,9 +89,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Port ayarı
-//var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
-//app.Urls.Add($"http://0.0.0.0:{port}");
+//Port ayarı
+var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
+app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.UseAuthentication();
 app.UseAuthorization();
